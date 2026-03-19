@@ -1,6 +1,7 @@
-            - name: Add project root to PYTHONPATH
-        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
-name : Deploy LLm CHat App to Digital Ocean
+name: Deploy LLm CHat App to Digital Ocean
+      - name: Add project root to PYTHONPATH
+        run: |
+          echo "PYTHONPATH=\"$PYTHONPATH:$(pwd)\"" >> $GITHUB_ENV
 
 on:
   push:
