@@ -1,7 +1,4 @@
-name: Deploy LLm CHat App to Digital Ocean
-      - name: Add project root to PYTHONPATH
-        run: |
-          echo "PYTHONPATH=\"$PYTHONPATH:$(pwd)\"" >> $GITHUB_ENV
+name: Deploy LLM Chat App to DigitalOcean
 
 on:
   push:
@@ -11,16 +8,17 @@ on:
       branches:
         - main
     workflow_dispatch:
-
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=\"$PYTHONPATH:$(pwd)\"" >> $GITHUB_ENV
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
