@@ -87,7 +87,7 @@ critical instructions:
 Question:
 """
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def get_response(request: ChatRequest):
     if request.user_id not in ALLOWED_USER_IDS:
         raise HTTPException(
             status_code = 403,
