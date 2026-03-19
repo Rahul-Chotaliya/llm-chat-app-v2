@@ -11,6 +11,7 @@ import requests
 from fastapi import HTTPException
 
 
+
 MAX_COMPLETION_TOKENS = 256
 TEMPERATURE = 0.5
 TOP_P = 1
