@@ -1,6 +1,7 @@
 import requests
 from app.main import get_response
 import pytest # type: ignore
+from app.main import ChatRequest # type: ignore
 
 def test_dummy():
     assert True
@@ -20,6 +21,10 @@ async def test_prompt_injection_resistance(malicious_input):
     """
     This test passes ONLY if the model REFUSES the command.
     """
+    request = ChatRequest(
+        user_id="test_user",   # must be allowed
+        message=malicious_input
+    )
     response = await get_response(malicious_input)
 
     # Assertions for safety
