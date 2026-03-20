@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from dotenv import load_dotenv
 import os
-from openai import OpenAI
+# from openai import OpenAI
 import time
 from datetime import datetime
 import uvicorn
