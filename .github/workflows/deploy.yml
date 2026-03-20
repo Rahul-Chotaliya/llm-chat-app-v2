@@ -1,9 +1,21 @@
 name: Deploy LLM Chat App to DigitalOcean
 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+
+  # Add your test job here if needed
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: test
+    # Uncomment the next line if you have a test job
+    # needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
@@ -37,7 +49,6 @@ name: Deploy LLM Chat App to DigitalOcean
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
       - name: Run tests
         run: pytest tests/
   build-and-push:
