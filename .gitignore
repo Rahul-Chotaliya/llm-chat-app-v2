@@ -8,8 +8,9 @@ __pycache__/
 *.sqlite3
 *.log
 *.env
-.env.*
 *.bak
 *.tmp
 *.swp
 .DS_Store
+config.bat
+node_modules
