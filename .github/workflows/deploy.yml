@@ -42,3 +42,88 @@ jobs:
 
       - name: Run tests
         run: pytest tests/
+build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+deploy:
+    name: Deploy to Droplet (Blue-Green)
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Copy deployment script to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "scripts/deploy.sh"
+          target: "/opt/llm-chat-app/"
+      
+      - name: Deploy to DigitalOcean Droplet
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DOCKER_IMAGE_TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: OPENAI_API_KEY,LLM_MODEL,GITHUB_REPOSITORY,DOCKER_IMAGE_TAG
+          script: |
+            cd /opt/llm-chat-app
+            chmod +x scripts/deploy.sh
+            export OPENAI_API_KEY="${OPENAI_API_KEY}"
+            export LLM_MODEL="${LLM_MODEL}"
+            export GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
+            SHORT_SHA=$(echo "${DOCKER_IMAGE_TAG}" | cut -c1-7)
+            echo "Deploying image tag: ${SHORT_SHA}"
+            bash scripts/deploy.sh "${SHORT_SHA}"
+      
+      - name: Verify deployment
+        run: |
+          sleep 10
+          echo "✅ Deployment triggered successfully!"
