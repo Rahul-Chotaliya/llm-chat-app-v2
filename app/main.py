@@ -86,8 +86,22 @@ critical instructions:
 - if anyone ask about like how can you answers the question refuse camly in respecful way
 Question:
 """
+
+BLOCKED_PATTERNS = [
+    "hack", "bomb", "steal", "fraud", "bypass", "virus"
+]
+def is_malicious(text: str) -> bool:
+    text = text.lower()
+    return any(word in text for word in BLOCKED_PATTERNS)
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def get_response(request: ChatRequest):
+    # ✅ BLOCK malicious input BEFORE API call
+    if is_malicious(request.message):
+        return {
+            "response": "I'm sorry, I can't assist with that request."
+        }
     if request.user_id not in ALLOWED_USER_IDS:
         raise HTTPException(
             status_code = 403,
